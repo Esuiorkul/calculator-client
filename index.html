@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор для бизнеса</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+        .calculator-container {
+            background: linear-gradient(135deg, #6b73ff, #000dff);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            color: white;
+        }
+        .calculator-container h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: 2px solid #00b4d8;
+        }
+        .form-group button {
+            width: 100%;
+            padding: 12px;
+            background-color: #00b4d8;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .form-group button:hover {
+            background-color: #0077b6;
+        }
+        .result {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 1.4em;
+        }
+        .result span {
+            display: block;
+            margin-top: 5px;
+            font-size: 1.2em;
+            color: #f4f4f9;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkbox-group label {
+            margin: 0;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container" id="calculator-container">
+        <h2>Калькулятор для бизнеса</h2>
+        <div class="form-group">
+            <label for="price-per-unit">Цена за единицу товара (₽ или сом)</label>
+            <input type="number" id="price-per-unit" placeholder="Введите цену за единицу товара">
+        </div>
+        <div class="form-group">
+            <label for="clients">Количество клиентов</label>
+            <input type="number" id="clients" placeholder="Введите количество клиентов (макс 20)" max="20">
+        </div>
+        <div id="client-inputs"></div>
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="show-details">
+            <label for="show-details">Показать детали расчета</label>
+        </div>
+        <div class="form-group">
+            <button onclick="calculateTotalRevenue()">Рассчитать выручку</button>
+        </div>
+        <div class="form-group">
+            <button onclick="saveRevenueImage()">Сохранить выручку в галерею</button>
+        </div>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        document.getElementById('clients').addEventListener('input', function() {
+            const numberOfClients = parseInt(this.value) || 0;
+            const clientInputsDiv = document.getElementById('client-inputs');
+
+            clientInputsDiv.innerHTML = '';
+            for (let i = 1; i <= numberOfClients; i++) {
+                const inputGroup = document.createElement('div');
+                inputGroup.classList.add('form-group');
+
+                const label = document.createElement('label');
+                label.textContent = `Клиент ${i}: количество покупок`;
+                inputGroup.appendChild(label);
+
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = `client-${i}`;
+                input.placeholder = `Введите количество покупок клиента ${i}`;
+                inputGroup.appendChild(input);
+
+                clientInputsDiv.appendChild(inputGroup);
+            }
+        });
+
+        let savedRevenue = 0;
+
+        function calculateTotalRevenue() {
+            const pricePerUnit = parseFloat(document.getElementById('price-per-unit').value) || 0;
+            const numberOfClients = parseInt(document.getElementById('clients').value) || 0;
+            const showDetails = document.getElementById('show-details').checked;
+            let totalRevenue = 0;
+
+            let details = '';
+            for (let i = 1; i <= numberOfClients; i++) {
+                const clientPurchases = parseInt(document.getElementById(`client-${i}`).value) || 0;
+                const clientRevenue = clientPurchases * pricePerUnit;
+                totalRevenue += clientRevenue;
+
+                if (showDetails) {
+                    details += `Клиент ${i}: ${clientPurchases} шт. × ${pricePerUnit} = ${clientRevenue.toFixed(2)}<br>`;
+                }
+            }
+
+            savedRevenue = totalRevenue; // Update the saved revenue
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `Общая выручка: <span>${totalRevenue.toFixed(2)}</span>`;
+
+            if (showDetails && details) {
+                resultDiv.innerHTML += `<div style="text-align: left; margin-top: 15px;">Детали:<br>${details}</div>`;
+            }
+        }
+
+        function saveRevenueImage() {
+            const container = document.getElementById('calculator-container');
+            html2canvas(container).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'выручка.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                alert('Выручка сохранена в виде изображения.');
+            });
+        }
+    </script>
+</body>
+</html>
